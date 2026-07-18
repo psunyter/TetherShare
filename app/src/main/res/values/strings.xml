@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">TetherShare</string>
+    <string name="local_ip_addresses">Your Local IP Addresses:</string>
+    <string name="total_data_used">Total Data Used</string>
+    <string name="connected_devices">Connected Devices</string>
+    <string name="live_network_usage">Live Network Usage: %1$s</string>
+    <string name="speed_kbps">%1$.1f KB/s</string>
+    <string name="speed_mbps">%1$.2f MB/s</string>
+    <string name="proxy_port">Proxy Port</string>
+    <string name="stop_proxy">STOP PROXY</string>
+    <string name="start_proxy">START PROXY</string>
+    <string name="battery_optimization_title">Battery Optimization</string>
+    <string name="battery_optimization_message">To ensure the proxy service runs reliably in the background, please set battery usage to \'Unrestricted\' in the app settings.</string>
+    <string name="go_to_settings">Go to Settings</string>
+    <string name="dismiss">Dismiss</string>
+    <string name="copied_toast">Copied: %1$s</string>
+    <string name="proxy_active">Proxy is Active</string>
+    <string name="proxy_running_on_port">Proxy running on port: %1$d</string>
+    <string name="notification_channel_name">Proxy Service Stats Channel</string>
+    <string name="data_gb">%1$.2f GB</string>
+    <string name="data_mb">%1$.2f MB</string>
+    <string name="copy_ip">Copy IP</string>
+    <string name="unknown_interface">Unknown</string>
+    <string name="settings">Settings</string>
+    <string name="theme">Theme</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_amoled">AMOLED</string>
+    <string name="theme_system">System Default</string>
+    <string name="about">About TetherShare</string>
+    <string name="about_description">TetherShare turns your device into a portable HTTP proxy server to share your internet connection with other devices over local networks. It monitors data usage and bandwidth in real-time without requiring root access.</string>
+</resources>
