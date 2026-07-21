@@ -17,6 +17,8 @@
     <string name="proxy_active">Proxy is Active</string>
     <string name="proxy_running_on_port">Proxy running on port: %1$d</string>
     <string name="notification_channel_name">Proxy Service Stats Channel</string>
+    <string name="error_port_in_use">Error: Port %1$d is already in use.</string>
+    <string name="error_starting_proxy">Error starting proxy server.</string>
     <string name="data_gb">%1$.2f GB</string>
     <string name="data_mb">%1$.2f MB</string>
     <string name="copy_ip">Copy IP</string>

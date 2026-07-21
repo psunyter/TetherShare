@@ -8,14 +8,20 @@ import android.content.Intent
 import android.net.TrafficStats
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import java.net.BindException
 
 class ProxyService : LifecycleService() {
 
     private var proxyServer: HttpProxyServer? = null
-    private val handler = Handler(Looper.getMainLooper())
-    private lateinit var statusRunnable: Runnable
+    private var statsJob: Job? = null
 
     private var initialRxBytes: Long = 0
     private var initialTxBytes: Long = 0
@@ -26,13 +32,14 @@ class ProxyService : LifecycleService() {
         const val EXTRA_CONNECTIONS = "connections"
         const val EXTRA_TOTAL_MB = "total_mb"
         const val EXTRA_SPEED_KBPS = "speed_kbps"
+        const val ACTION_STOP = "STOP"
+        const val EXTRA_PORT = "PORT"
     }
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
 
-        // Save initial TrafficStats to count data used *only* during this run session
         val uid = packageManager.getApplicationInfo(packageName, 0).uid
         initialRxBytes = TrafficStats.getUidRxBytes(uid).takeIf { it != TrafficStats.UNSUPPORTED.toLong() } ?: 0
         initialTxBytes = TrafficStats.getUidTxBytes(uid).takeIf { it != TrafficStats.UNSUPPORTED.toLong() } ?: 0
@@ -42,12 +49,21 @@ class ProxyService : LifecycleService() {
         super.onStartCommand(intent, flags, startId)
 
         val action = intent?.action
-        if (action == "STOP") {
+        if (action == ACTION_STOP) {
             stopSelf()
             return START_NOT_STICKY
         }
 
-        val port = intent?.getIntExtra("PORT", 8080) ?: 8080
+        val port = intent?.getIntExtra(EXTRA_PORT, 8080) ?: 8080
+
+        // If server is already running on the same port, just update notification if needed
+        if (proxyServer?.port == port && proxyServer?.isRunning() == true) {
+            return START_STICKY
+        }
+
+        // Stop existing server if port changed or we are restarting
+        proxyServer?.stop()
+        statsJob?.cancel()
 
         val notificationIntent = Intent(this, MainActivity::class.java)
         val pendingIntent = PendingIntent.getActivity(
@@ -66,44 +82,54 @@ class ProxyService : LifecycleService() {
 
         // Spin up the Proxy Server
         proxyServer = HttpProxyServer(port).apply {
+            onError = { e ->
+                handleServerError(e, port)
+            }
             start()
         }
 
-        // Periodically calculate network speeds and data usage
         setupStatsTracker()
 
-        return START_NOT_STICKY
+        return START_STICKY
+    }
+
+    private fun handleServerError(e: Exception, port: Int) {
+        Handler(Looper.getMainLooper()).post {
+            val message = if (e is BindException) {
+                getString(R.string.error_port_in_use, port)
+            } else {
+                getString(R.string.error_starting_proxy)
+            }
+            Toast.makeText(this@ProxyService, message, Toast.LENGTH_LONG).show()
+            stopSelf()
+        }
     }
 
     private fun setupStatsTracker() {
         val uid = packageManager.getApplicationInfo(packageName, 0).uid
-
-        statusRunnable = object : Runnable {
-            private var lastTotalBytes = (TrafficStats.getUidRxBytes(uid) + TrafficStats.getUidTxBytes(uid))
-
-            override fun run() {
+        
+        statsJob = lifecycleScope.launch {
+            var lastTotalBytes = (TrafficStats.getUidRxBytes(uid) + TrafficStats.getUidTxBytes(uid))
+            
+            while (isActive) {
                 val rx = TrafficStats.getUidRxBytes(uid)
                 val tx = TrafficStats.getUidTxBytes(uid)
 
                 val currentTotalBytes = rx + tx
 
-                // Calculate total session size in Megabytes (MB)
                 val sessionBytes = (rx - initialRxBytes) + (tx - initialTxBytes)
                 val totalSessionMB = sessionBytes.toDouble() / (1024.0 * 1024.0)
 
-                // Speed in Kilobytes per second (since we run once every 1 second)
                 val speedBytes = currentTotalBytes - lastTotalBytes
                 val speedKbps = (speedBytes.toDouble() / 1024.0).coerceAtLeast(0.0)
 
                 lastTotalBytes = currentTotalBytes
 
-                // Send values to UI
                 sendStatsBroadcast(totalSessionMB, speedKbps)
-
-                handler.postDelayed(this, 1000)
+                
+                delay(1000)
             }
         }
-        handler.post(statusRunnable)
     }
 
     private fun sendStatsBroadcast(totalMB: Double, speedKbps: Double) {
@@ -116,7 +142,7 @@ class ProxyService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        handler.removeCallbacks(statusRunnable)
+        statsJob?.cancel()
         proxyServer?.stop()
         super.onDestroy()
     }
@@ -128,6 +154,6 @@ class ProxyService : LifecycleService() {
             NotificationManager.IMPORTANCE_LOW,
         )
         val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(serviceChannel)
+        manager?.createNotificationChannel(serviceChannel)
     }
 }
