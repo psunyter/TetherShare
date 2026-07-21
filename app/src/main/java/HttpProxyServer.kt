@@ -22,6 +22,10 @@ class HttpProxyServer(val port: Int) {
     var onConnectionCountChanged: ((Int) -> Unit)? = null
     var onError: ((Exception) -> Unit)? = null
 
+    // Authentication
+    var isAuthEnabled: Boolean = false
+    var validCredentialsBase64: Set<String> = emptySet()
+
     companion object {
         private const val SOCKET_TIMEOUT = 30000 // 30 seconds
         private const val BUFFER_SIZE = 8192
@@ -92,6 +96,28 @@ class HttpProxyServer(val port: Int) {
         val header = String(headerData.bytes, 0, headerData.length, Charsets.UTF_8)
         val lines = header.split("\r\n")
         if (lines.isEmpty()) return@withContext
+
+        // Check authentication if enabled
+        if (isAuthEnabled) {
+            val authHeader = lines.find { it.startsWith("Proxy-Authorization:", ignoreCase = true) }
+            val isAuthorized = if (authHeader != null) {
+                val base64Credentials = authHeader.substringAfter("Basic ").trim()
+                validCredentialsBase64.contains(base64Credentials)
+            } else {
+                false
+            }
+
+            if (!isAuthorized) {
+                clientOut.write(
+                    ("HTTP/1.1 407 Proxy Authentication Required\r\n" +
+                            "Proxy-Authenticate: Basic realm=\"TetherShare\"\r\n" +
+                            "Content-Length: 0\r\n" +
+                            "Connection: close\r\n\r\n").toByteArray()
+                )
+                clientOut.flush()
+                return@withContext
+            }
+        }
 
         val requestLine = lines[0]
         val parts = requestLine.split(" ")

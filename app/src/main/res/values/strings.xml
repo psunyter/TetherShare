@@ -31,4 +31,14 @@
     <string name="theme_system">System Default</string>
     <string name="about">About TetherShare</string>
     <string name="about_description">TetherShare turns your device into a portable HTTP proxy server to share your internet connection with other devices over local networks. It monitors data usage and bandwidth in real-time without requiring root access.</string>
+    <string name="proxy_auth">Proxy Authentication</string>
+    <string name="enable_auth">Enable Authentication</string>
+    <string name="users">Users</string>
+    <string name="add_user">Add User</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="no_users">No users added</string>
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
 </resources>

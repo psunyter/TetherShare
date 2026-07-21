@@ -80,8 +80,15 @@ class ProxyService : LifecycleService() {
 
         startForeground(1, notification)
 
+        // Load authentication settings
+        val authPrefs = AuthPreferences(this)
+        val isAuthEnabled = authPrefs.isAuthEnabled
+        val validCredentials = authPrefs.getValidCredentialsBase64()
+
         // Spin up the Proxy Server
         proxyServer = HttpProxyServer(port).apply {
+            this.isAuthEnabled = isAuthEnabled
+            this.validCredentialsBase64 = validCredentials
             onError = { e ->
                 handleServerError(e, port)
             }

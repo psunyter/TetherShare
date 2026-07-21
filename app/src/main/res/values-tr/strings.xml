@@ -31,4 +31,14 @@
     <string name="theme_system">Sistem Varsayılanı</string>
     <string name="about">TetherShare Hakkında</string>
     <string name="about_description">TetherShare, internet bağlantınızı yerel ağlar üzerinden diğer cihazlarla paylaşmak için cihazınızı taşınabilir bir HTTP proxy sunucusuna dönüştürür. Kök (root) erişimi gerektirmeden veri kullanımını ve bant genişliğini gerçek zamanlı olarak izler.</string>
+    <string name="proxy_auth">Proxy Kimlik Doğrulama</string>
+    <string name="enable_auth">Kimlik Doğrulamayı Etkinleştir</string>
+    <string name="users">Kullanıcılar</string>
+    <string name="add_user">Kullanıcı Ekle</string>
+    <string name="username">Kullanıcı Adı</string>
+    <string name="password">Şifre</string>
+    <string name="no_users">Kullanıcı eklenmedi</string>
+    <string name="cancel">İptal</string>
+    <string name="add">Ekle</string>
+    <string name="delete">Sil</string>
 </resources>
