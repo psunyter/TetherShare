@@ -42,4 +42,4 @@
 
 ---
 
-Developed with ❤️ for stable and secure internet sharing.
+Vibe coded for stable and secure internet sharing.
