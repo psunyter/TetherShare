@@ -8,8 +8,13 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import android.widget.Toast
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -140,6 +145,47 @@ fun ProxyAppUI(
     var networkAddresses by remember { mutableStateOf(emptyMap<String, String>()) }
     val clipboardManager = LocalClipboardManager.current
     val showBatteryDialog = remember { mutableStateOf(false) }
+    val showNotificationDialog = remember { mutableStateOf(false) }
+
+    val notificationLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted ->
+            if (!isGranted) {
+                Toast.makeText(context, R.string.notifications_disabled_info, Toast.LENGTH_LONG).show()
+            }
+        }
+    )
+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                showNotificationDialog.value = true
+            }
+        }
+    }
+
+    if (showNotificationDialog.value) {
+        AlertDialog(
+            onDismissRequest = { showNotificationDialog.value = false },
+            title = { Text(stringResource(R.string.notification_permission_title)) },
+            text = { Text(stringResource(R.string.notification_permission_message)) },
+            confirmButton = {
+                Button(onClick = {
+                    showNotificationDialog.value = false
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }) {
+                    Text(stringResource(R.string.allow))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNotificationDialog.value = false }) {
+                    Text(stringResource(R.string.dismiss))
+                }
+            }
+        )
+    }
 
     LaunchedEffect(unknownText) {
         while (true) {

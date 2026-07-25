@@ -41,4 +41,10 @@
     <string name="cancel">İptal</string>
     <string name="add">Ekle</string>
     <string name="delete">Sil</string>
+    <string name="notification_permission_title">Bildirim İzni</string>
+    <string name="notification_permission_message">TetherShare, canlı ağ istatistiklerini göstermek ve proxy\'yi arka planda çalışır durumda tutmak için bildirim iznine ihtiyaç duyar.</string>
+    <string name="allow">İzin Ver</string>
+    <string name="notifications">Bildirimler</string>
+    <string name="enable_notifications">Bildirimleri Etkinleştir</string>
+    <string name="notifications_disabled_info">Bildirimler devre dışı bırakıldı. İstatistikler ve durum çubuğunda gösterilmeyecek.</string>
 </resources>
