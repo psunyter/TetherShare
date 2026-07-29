@@ -27,6 +27,7 @@ class ProxyService : LifecycleService() {
     private var initialTxBytes: Long = 0
 
     companion object {
+        var isRunning = false
         const val CHANNEL_ID = "ProxyServiceChannel"
         const val STATS_ACTION = "sahin.tethershare.STATS_UPDATE"
         const val EXTRA_CONNECTIONS = "connections"
@@ -65,9 +66,11 @@ class ProxyService : LifecycleService() {
         proxyServer?.stop()
         statsJob?.cancel()
 
-        val notificationIntent = Intent(this, MainActivity::class.java)
+        val notificationIntent = Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
         val pendingIntent = PendingIntent.getActivity(
-            this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE,
+            this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
         val notification: Notification = NotificationCompat.Builder(this, CHANNEL_ID)
@@ -79,6 +82,7 @@ class ProxyService : LifecycleService() {
             .build()
 
         startForeground(1, notification)
+        isRunning = true
 
         // Load authentication settings
         val authPrefs = AuthPreferences(this)
@@ -149,6 +153,7 @@ class ProxyService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        isRunning = false
         statsJob?.cancel()
         proxyServer?.stop()
         super.onDestroy()

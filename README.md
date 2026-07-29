@@ -15,6 +15,7 @@
 - **Theme Support**: Includes Light, Dark, System Default, and AMOLED (True Black) modes.
 - **Stability Focused**: Optimized for Android 12+ with robust socket handling and background persistence.
 - **Multilingual**: Fully localized in English and Turkish.
+- **Quick Settings Tile**: Toggle the proxy instantly from your Android notification shade.
 
 ## 🛠 How It Works
 

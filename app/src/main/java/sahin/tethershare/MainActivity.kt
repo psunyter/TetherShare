@@ -47,10 +47,12 @@ class MainActivity : ComponentActivity() {
     private var currentSpeedKbps = mutableDoubleStateOf(0.0)
     private val speedHistory = mutableStateListOf<Float>() // Keeps speed data points for the graph
     private var themeMode = mutableIntStateOf(0)
+    private var isProxyRunning = mutableStateOf(false)
 
     private val statsReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             intent?.let {
+                isProxyRunning.value = true
                 activeConnections.intValue = it.getIntExtra(ProxyService.EXTRA_CONNECTIONS, 0)
                 dataUsedMB.doubleValue = it.getDoubleExtra(ProxyService.EXTRA_TOTAL_MB, 0.0)
 
@@ -82,18 +84,21 @@ class MainActivity : ComponentActivity() {
                         dataUsedMB = dataUsedMB.doubleValue,
                         currentSpeed = currentSpeedKbps.doubleValue,
                         speedHistory = speedHistory,
+                        isProxyRunning = isProxyRunning.value,
                         onStartProxy = { port ->
                             val intent = Intent(this, ProxyService::class.java).apply {
                                 action = "START"
                                 putExtra("PORT", port)
                             }
                             startForegroundService(intent)
+                            isProxyRunning.value = true
                         },
                         onStopProxy = {
                             val intent = Intent(this, ProxyService::class.java).apply {
                                 action = "STOP"
                             }
                             startService(intent)
+                            isProxyRunning.value = false
 
                             // Reset stats
                             activeConnections.intValue = 0
@@ -112,6 +117,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        isProxyRunning.value = ProxyService.isRunning
         themeMode.intValue = ThemePreferences(this).selectedTheme
         val filter = IntentFilter(ProxyService.STATS_ACTION)
         ContextCompat.registerReceiver(
@@ -134,11 +140,11 @@ fun ProxyAppUI(
     dataUsedMB: Double,
     currentSpeed: Double,
     speedHistory: List<Float>,
+    isProxyRunning: Boolean,
     onStartProxy: (Int) -> Unit,
     onStopProxy: () -> Unit,
     onOpenSettings: () -> Unit
 ) {
-    var isProxyRunning by remember { mutableStateOf(false) }
     var portString by remember { mutableStateOf("8080") }
     val context = LocalContext.current
     val unknownText = stringResource(R.string.unknown_interface)
@@ -351,7 +357,6 @@ fun ProxyAppUI(
                     val port = portString.toIntOrNull() ?: 8080
                     onStartProxy(port)
                 }
-                isProxyRunning = !isProxyRunning
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = if (isProxyRunning) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary

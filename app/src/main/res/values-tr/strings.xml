@@ -47,4 +47,6 @@
     <string name="notifications">Bildirimler</string>
     <string name="enable_notifications">Bildirimleri Etkinleştir</string>
     <string name="notifications_disabled_info">Bildirimler devre dışı bırakıldı. İstatistikler ve durum çubuğunda gösterilmeyecek.</string>
+    <string name="proxy_active_short">Aktif</string>
+    <string name="proxy_inactive_short">Devre Dışı</string>
 </resources>
